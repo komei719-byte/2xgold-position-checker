@@ -45,7 +45,7 @@ else:
 if rate_rising and gvz_high:
   target_size_1x = "ガチホ (100%)"
   action_1x = "押し目買い準備"
-  reason_1x = "マクロ逆風による調整局面。現物・1倍は減価しないため売却不要。連動安は絶好の絶好の買い増し好機。"
+  reason_1x = "マクロ逆風による調整局面。現物・1倍は減価しないため売却不要。連動安は絶好の買い増し好機。"
 elif rate_rising or gvz_high:
   target_size_1x = "ガチホ (100%)"
   action_1x = "静観 / 継続保有"
@@ -99,7 +99,7 @@ html_content = f"""<!DOCTYPE html>
         </div>
         <div class="meta-card">
             最終更新日時: {updated_at}<br>
-            前日金スポット価格: <strong>${latest['Gold']:.1f}</strong> | 金ボラティリティ指数(GVZ): <strong>{latest['GVZ']:.2f}</strong> | FF金利3ヶ月変動: <strong>{latest['FF_3M_Change'] board:+.2f}%</strong>
+            前日金スポット価格: <strong>${latest['Gold']:.1f}</strong> | 金ボラティリティ指数(GVZ): <strong>{latest['GVZ']:.2f}</strong> | FF金利3ヶ月変動: <strong>{latest['FF_3M_Change']:+.2f}%</strong>
         </div>
     </div>
 </body>
