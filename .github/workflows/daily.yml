@@ -1,16 +1,27 @@
-name: Daily Position Check
+name: Daily Position Check & Deploy
 
 on:
   schedule:
-    # 毎日 日本時間 午前8時 (UTC 23:00) に自動実行
+    # 毎日 日本時間 午前8時 (UTC 23:00)
     - cron: '0 23 * * *'
-  workflow_dispatch: # 手動実行ボタンも有効化
+  workflow_dispatch: # 手動実行
+
+# GitHub Pages へのデプロイ権限を設定
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,10 +37,14 @@ jobs:
       - name: Run script
         run: python check_position.py
 
-      - name: Commit & Push index.html
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "Auto update position ratio" || exit 0
-          git push
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # index.html があるルートディレクトリを指定
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
