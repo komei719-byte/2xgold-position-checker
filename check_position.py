@@ -4,7 +4,7 @@ import pandas as pd
 import pandas_datareader.data as web
 import yfinance as yf
 
-# GitHub Actions環境でのyfinanceキャッシュエラーを完全に回避する設定
+# GitHub Actions環境でのyfinanceキャッシュエラー回避
 os.environ["YFINANCE_CACHE_DIR"] = "/tmp/yfinance_cache"
 
 # 1. データ取得
@@ -15,10 +15,13 @@ end_date = datetime.now().strftime("%Y-%m-%d")
 def fetch_yf_data(ticker):
   t = yf.Ticker(ticker)
   df = t.history(start=start_date, end=end_date)
+  # タイムゾーン情報を除去して tz-naive に統一
+  if df.index.tz is not None:
+    df.index = df.index.tz_localize(None)
   return df["Close"]
 
 
-# 個別に取得して確実に結合
+# 個別に取得
 gold_series = fetch_yf_data("GC=F")
 gvz_series = fetch_yf_data("^GVZ")
 
@@ -26,7 +29,7 @@ yf_raw = pd.concat([gold_series, gvz_series], axis=1, sort=False)
 yf_raw.columns = ["Gold", "GVZ"]
 yf_raw = yf_raw.ffill().dropna()
 
-# FREDから金利データを取得
+# FREDから金利データを取得 (デフォルトで tz-naive)
 fred_data = web.DataReader(["FEDFUNDS"], "fred", start_date, end_date)
 
 # データの統合
