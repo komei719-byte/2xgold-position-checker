@@ -4,17 +4,32 @@ import pandas as pd
 import pandas_datareader.data as web
 import yfinance as yf
 
-# 1. データ取得
+# yfinance のキャッシュによるロックエラーを防ぐ
+yf.set_tz_cache_location(None)
+
+# 1. データ取得（堅牢化）
 start_date = "2010-01-01"
 end_date = datetime.now().strftime("%Y-%m-%d")
 
+# キャッシュなしで直接ダウンロード
 yf_raw = yf.download(
-    ["GC=F", "^GVZ"], start=start_date, end=end_date, auto_adjust=True
+    ["GC=F", "^GVZ"],
+    start=start_date,
+    end=end_date,
+    auto_adjust=True,
+    ignore_tz=True,
 )["Close"]
-yf_raw.columns = ["Gold", "GVZ"]
+
+# カラムが存在することを確認
+if "GC=F" in yf_raw.columns and "^GVZ" in yf_raw.columns:
+  yf_raw = yf_raw[["GC=F", "^GVZ"]]
+  yf_raw.columns = ["Gold", "GVZ"]
+else:
+  raise ValueError("yfinanceからのデータ取得に失敗しました。")
+
 fred_data = web.DataReader(["FEDFUNDS"], "fred", start_date, end_date)
 
-# Pandas 警告回避のため sort=False を明示
+# Pandas 警告回避 & 欠損値補完
 df = pd.concat([yf_raw, fred_data], axis=1, sort=False).ffill().dropna()
 
 # 2. 指標計算
